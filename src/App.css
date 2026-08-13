@@ -1,0 +1,23 @@
+/* Custom Glow Gradients & Animations — recolored to Drift's amber/teal palette */
+.hero-glow-amber {
+  background: radial-gradient(circle, rgba(232, 178, 77, 0.22) 0%, rgba(255, 255, 255, 0) 70%);
+}
+
+.hero-glow-teal {
+  background: radial-gradient(circle, rgba(53, 214, 169, 0.18) 0%, rgba(255, 255, 255, 0) 70%);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(27, 31, 44, 0.08);
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+.animate-float {
+  animation: float 5s ease-in-out infinite;
+}
