@@ -1,200 +1,642 @@
-import React from 'react';
-import driftDashboard from '../assets/heroSection.svg';
+import React, { useState, useEffect, useRef } from 'react';
+import HeroPNG from '../assets/herosection.svg';
+import HeroBackgroundDesktop from '../assets/blue_bg.png';
+import HeroBackgroundMobile from '../assets/mobile-background.png';
 
-/* Small inline icons — kept dependency-free so this drops straight into the
-   existing project without adding lucide-react or any other package. */
+/* =========================================================
+   COPY
+   Everything the visitor reads lives here, so it is easy to
+   change without touching the layout.
+
+   Headline option B is used. Swap in these if you prefer:
+   A: "See the pattern in your losing trades" / "before it costs you again."
+   C: "The trading journal" / "that fills itself."
+
+   Leave `microcopy` empty to hide it. Only fill it with a claim
+   you have confirmed (for example the 2-minute connect time).
+========================================================= */
+
+const COPY = {
+  titleTop: 'Your broker shows the P&L.',
+  titleBottom: 'Journin shows what you kept.',
+  subline: 'Connect your broker and see your real profit after STT, fees and GST.',
+  primaryCta: 'Get started',
+  microcopy: '',
+};
+
+/* =========================================================
+   ICONS
+========================================================= */
+
 const ArrowIcon = (props) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"
-       strokeLinecap="round" strokeLinejoin="round" {...props}>
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.9"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+    {...props}
+  >
     <path d="M5 12h14M13 6l6 6-6 6" />
   </svg>
 );
 
-const ReportIcon = (props) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"
-       strokeLinecap="round" strokeLinejoin="round" {...props}>
-    <path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" />
-    <path d="M14 3v5h5M9 13h6M9 17h6M9 9h2" />
-  </svg>
-);
+/* =========================================================
+   SCROLL TILT
+   The dashboard starts tilted back and slightly smaller, then
+   settles flat as the visitor scrolls toward it.
+   - Only transform and opacity are animated.
+   - One passive scroll listener, throttled with rAF.
+   - Reduced motion: the dashboard is simply shown flat.
+========================================================= */
+
+function useScrollTilt(stageRef, tiltRef, glowRef, introRef) {
+  useEffect(() => {
+    const stage = stageRef.current;
+    const tilt = tiltRef.current;
+    const glow = glowRef.current;
+    const intro = introRef.current;
+    if (!stage || !tilt) return undefined;
+
+    // Browsers with scroll-driven animations handle this in CSS.
+    if (
+      typeof CSS !== 'undefined' &&
+      CSS.supports &&
+      CSS.supports('animation-timeline: scroll()')
+    ) {
+      return undefined;
+    }
+
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const smallScreen = window.matchMedia('(max-width: 640px)');
+
+    let stageTop = 0;
+    let ticking = false;
+
+    const measure = () => {
+      stageTop = stage.getBoundingClientRect().top + window.scrollY;
+    };
+
+    const apply = () => {
+      ticking = false;
+
+      const maxTilt = smallScreen.matches ? 8 : 24;
+      const minScale = smallScreen.matches ? 0.96 : 0.9;
+
+      let progress = 1;
+
+      if (!reduceMotion.matches) {
+        // Fully flat after scrolling 60% of the viewport height.
+        const distance = Math.max(260, window.innerHeight * 0.6);
+        progress = Math.min(1, Math.max(0, window.scrollY / distance));
+      }
+
+      const eased = 1 - Math.pow(1 - progress, 2);
+
+      tilt.style.transform = `rotateX(${(1 - eased) * maxTilt}deg) scale(${
+        minScale + (1 - minScale) * eased
+      })`;
+
+      if (glow) glow.style.opacity = String(0.45 + 0.55 * eased);
+
+      if (intro && !reduceMotion.matches) {
+        const fade = Math.min(1, window.scrollY / (window.innerHeight * 0.4));
+        intro.style.opacity = String(1 - fade);
+        intro.style.transform = `translateY(${-24 * fade}px)`;
+      }
+    };
+
+    const requestTick = () => {
+      if (ticking) return;
+      ticking = true;
+      window.requestAnimationFrame(apply);
+    };
+
+    const handleResize = () => {
+      measure();
+      requestTick();
+    };
+
+    measure();
+    apply();
+
+    window.addEventListener('scroll', requestTick, { passive: true });
+    window.addEventListener('resize', handleResize);
+    reduceMotion.addEventListener('change', requestTick);
+
+    // Fonts and images can shift the layout after first paint.
+    let observer;
+    if (typeof ResizeObserver !== 'undefined') {
+      observer = new ResizeObserver(handleResize);
+      observer.observe(document.documentElement);
+    }
+
+    return () => {
+      window.removeEventListener('scroll', requestTick);
+      window.removeEventListener('resize', handleResize);
+      reduceMotion.removeEventListener('change', requestTick);
+      if (observer) observer.disconnect();
+    };
+  }, [stageRef, tiltRef, glowRef]);
+}
+
+/* =========================================================
+   HERO SECTION
+   Navbar is intentionally not included here. It floats over the
+   top of the hero, so the top padding of .jn-content leaves room
+   for it.
+========================================================= */
 
 export default function HeroSection() {
-  const tags = [
-    { label: 'IBKR', dot: 'bg-[#E8B24D]' },
-    { label: 'TradingView', dot: 'bg-[#35D6A9]' },
-    { label: 'Tradovate', dot: 'bg-[#9B8CFF]' },
-    { label: 'Webull', dot: 'bg-[#E8B24D]' },
-  ];
+  const [mounted, setMounted] = useState(false);
 
-  const metrics = [
-    { value: '$107K+', label: 'Net P&L tracked', trend: 'up' },
-    { value: '61.2%', label: 'Win rate surfaced', trend: null },
-    { value: '1.8R', label: 'Avg R-multiple', trend: 'up' },
-    { value: '87/100', label: 'Edge score', trend: 'up' },
-  ];
+  const stageRef = useRef(null);
+  const tiltRef = useRef(null);
+  const glowRef = useRef(null);
+  const introRef = useRef(null);
+
+  useScrollTilt(stageRef, tiltRef, glowRef, introRef);
+
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setMounted(true), 60);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  // One load sequence: text first, dashboard last.
+  const reveal = (delayMs, offsetY = 18) => ({
+    opacity: mounted ? 1 : 0,
+    transform: mounted ? 'none' : `translate3d(0, ${offsetY}px, 0)`,
+    transition:
+      'opacity 700ms cubic-bezier(0.16, 1, 0.3, 1), transform 700ms cubic-bezier(0.16, 1, 0.3, 1)',
+    transitionDelay: `${delayMs}ms`,
+  });
 
   return (
-    <section className="drift-hero-scope relative overflow-hidden bg-[#FBF8F1] text-[#1B1F2C] pt-20 pb-16">
+    <section className="jn-hero">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap');
-        .drift-hero-scope {
-          --ink: #1B1F2C;
-          --surface: #FFFFFF;
-          --line: rgba(27,31,44,0.09);
-          --amber: #C9942F;
-          --amber-bright: #E8B24D;
-          --teal: #1FA983;
-          --muted: #6B7280;
-          font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+        /* =========================================================
+           HERO CONTAINER AND BACKGROUND
+           The gradient is a fallback behind the two images.
+           Top corners are rounded, the bottom runs straight into
+           the next section so the two read as one panel.
+        ========================================================= */
+
+        .jn-hero {
+          position: relative;
+          overflow: hidden;
+          isolation: isolate;
+          margin: 0 clamp(10px, 2vw, 28px);
+          border-radius: clamp(24px, 3vw, 40px) clamp(24px, 3vw, 40px) 0 0;
+          background: linear-gradient(
+            180deg,
+            #040A1E 0%,
+            #0A2A8F 40%,
+            #1F5BFF 64%,
+            #DCE8FF 90%,
+            #F8FAFF 100%
+          );
         }
-        .drift-hero-scope .font-display { font-family: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif; }
-        .drift-hero-scope .font-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
 
-        @keyframes dh-dash { to { stroke-dashoffset: -160; } }
-        @keyframes dh-pulse { 0%, 100% { opacity: .45; transform: scale(1); } 50% { opacity: 1; transform: scale(1.25); } }
-        @keyframes dh-float { 0%, 100% { transform: translateY(0) rotate(-1.1deg); } 50% { transform: translateY(-10px) rotate(-1.1deg); } }
+        .jn-bg {
+          position: absolute;
+          inset: 0;
+          z-index: -1;
+          background-repeat: no-repeat;
+          background-position: center top;
+          background-size: cover;
+          pointer-events: none;
+        }
 
-        .dh-curve-line { stroke-dasharray: 10 14; animation: dh-dash 5s linear infinite; }
-        .dh-node-pulse { animation: dh-pulse 2.2s ease-in-out infinite; }
-        .dh-float { animation: dh-float 6s ease-in-out infinite; }
+        .jn-bg-desktop { background-image: url(${HeroBackgroundDesktop}); }
+
+        .jn-bg-mobile {
+          display: none;
+          background-image: url(${HeroBackgroundMobile});
+        }
+
+        /* Fades the bottom of the hero (image included) into the colour
+           the broker section starts with, so there is no visible seam. */
+        .jn-hero::after {
+          content: "";
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          height: 140px;
+          z-index: 0;
+          background: linear-gradient(
+            180deg,
+            rgba(248, 250, 255, 0) 0%,
+            #F8FAFF 100%
+          );
+          pointer-events: none;
+        }
+
+        /* =========================================================
+           LAYOUT
+           Top padding leaves room for the floating navbar.
+        ========================================================= */
+
+        .jn-content {
+          position: relative;
+          z-index: 1;
+          width: min(100%, 1240px);
+          margin: 0 auto;
+          padding: 140px 24px 72px;
+          text-align: center;
+        }
+
+        .jn-intro {
+          max-width: 880px;
+          margin: 0 auto;
+        }
+
+        /* =========================================================
+           HEADLINE
+        ========================================================= */
+
+        .jn-title {
+          margin: 0 auto;
+          color: #FFFFFF;
+          font-family: "Inter", ui-sans-serif, system-ui, -apple-system,
+            "Segoe UI", sans-serif;
+          font-size: clamp(34px, 5.2vw, 62px);
+          font-weight: 680;
+          line-height: 1.06;
+          letter-spacing: -0.04em;
+          text-wrap: balance;
+        }
+
+        .jn-title-line { display: block; }
+
+        .jn-title-accent {
+          background: linear-gradient(
+            95deg,
+            #A9CEFF 0%,
+            #79DDF2 55%,
+            #6EE7C1 100%
+          );
+          -webkit-background-clip: text;
+          background-clip: text;
+          color: transparent;
+          -webkit-text-fill-color: transparent;
+        }
+
+        /* =========================================================
+           SUBLINE
+           One short line (two at most on small screens).
+        ========================================================= */
+
+        .jn-subline {
+          max-width: 640px;
+          margin: 24px auto 0;
+          color: rgba(226, 236, 255, 0.82);
+          font-family: "Inter", ui-sans-serif, system-ui, -apple-system,
+            "Segoe UI", sans-serif;
+          font-size: 17px;
+          font-weight: 450;
+          line-height: 1.55;
+          letter-spacing: -0.01em;
+          text-wrap: balance;
+        }
+
+        /* =========================================================
+           CTAS
+        ========================================================= */
+
+        .jn-actions {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          margin-top: 40px;
+        }
+
+        .jn-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          gap: 9px;
+          min-height: 54px;
+          padding: 0 30px;
+          border: 1px solid transparent;
+          border-radius: 12px;
+          font-family: "Inter", ui-sans-serif, system-ui, -apple-system,
+            "Segoe UI", sans-serif;
+          font-size: 14.5px;
+          font-weight: 620;
+          letter-spacing: -0.01em;
+          text-decoration: none;
+          cursor: pointer;
+          transition:
+            transform 0.22s ease,
+            box-shadow 0.22s ease,
+            background 0.22s ease,
+            border-color 0.22s ease;
+        }
+
+        .jn-btn:focus-visible {
+          outline: 2px solid #FFFFFF;
+          outline-offset: 3px;
+        }
+
+        .jn-btn-primary {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: #FFFFFF;
+  color: #0A2A6B;
+  box-shadow: 0 1px 2px rgba(5, 15, 50, 0.2);
+}
+
+/* Orange layer that fades in on hover */
+.jn-btn-primary::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(135deg, #FFB347 0%, #FF8A1F 100%);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.jn-btn-primary svg {
+  width: 16px;
+  height: 16px;
+  color: #2C63CA;
+  transition: transform 0.2s ease, color 0.25s ease;
+}
+
+.jn-btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px -8px rgba(255, 138, 31, 0.65);
+}
+
+.jn-btn-primary:hover::before { opacity: 1; }
+
+.jn-btn-primary:hover svg {
+  transform: translateX(3px);
+  color: #0A2A6B;
+}
+
+.jn-btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(255, 138, 31, 0.4);
+}
+
+        .jn-micro {
+          margin: 14px 0 0;
+          color: rgba(226, 236, 255, 0.7);
+          font-size: 13px;
+        }
+
+        /* =========================================================
+           DASHBOARD STAGE
+           stage (measured) > reveal (load) > clip > tilt (scroll)
+        ========================================================= */
+
+        .jn-stage {
+          position: relative;
+          width: min(100%, 1120px);
+          margin: 64px auto 0;
+        }
+
+        .jn-glow {
+          position: absolute;
+          left: 50%;
+          top: 30%;
+          width: 80%;
+          height: 300px;
+          transform: translate(-50%, -50%);
+          border-radius: 50%;
+          background: radial-gradient(
+            ellipse,
+            rgba(80, 150, 255, 0.45),
+            transparent 70%
+          );
+          filter: blur(48px);
+          opacity: 0.45;
+          pointer-events: none;
+        }
+
+        .jn-clip {
+          position: relative;
+          z-index: 1;
+          perspective: 1300px;
+          perspective-origin: 50% 0;
+        }
+
+        .jn-tilt {
+          --jn-tilt: 24deg;
+          --jn-scale: 0.9;
+          transform-origin: 50% 0;
+          transform: rotateX(var(--jn-tilt)) scale(var(--jn-scale));
+          will-change: transform;
+          backface-visibility: hidden;
+        }
+
+        /*
+          Browsers with scroll-driven animations (Chrome, Edge, Safari 26+)
+          run the tilt on the compositor, so it stays perfectly in step
+          with scrolling. Other browsers use the JS fallback in
+          useScrollTilt.
+        */
+        @supports (animation-timeline: scroll()) {
+          .jn-tilt {
+            animation: jnTiltFlat linear both;
+            animation-timeline: scroll(root block);
+            animation-range: 0px 60vh;
+            animation-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+          }
+
+          .jn-glow {
+            animation: jnGlowUp linear both;
+            animation-timeline: scroll(root block);
+            animation-range: 0px 60vh;
+          }
+
+          /* The headline block fades and lifts as the dashboard rises. */
+          .jn-intro {
+            animation: jnIntroOut linear both;
+            animation-timeline: scroll(root block);
+            animation-range: 0px 40vh;
+          }
+        }
+
+        @keyframes jnTiltFlat {
+          to { transform: rotateX(0deg) scale(1); }
+        }
+
+        @keyframes jnIntroOut {
+          to { opacity: 0; transform: translateY(-24px); }
+        }
+
+        @keyframes jnGlowUp {
+          from { opacity: 0.45; }
+          to { opacity: 1; }
+        }
+
+        .jn-dash {
+          display: block;
+          width: 100%;
+          height: auto;
+          border: 1px solid rgba(255, 255, 255, 0.6);
+          border-radius: 18px;
+          box-shadow:
+            0 30px 60px -36px rgba(8, 24, 80, 0.35),
+            0 10px 24px -14px rgba(8, 24, 80, 0.2);
+          user-select: none;
+        }
+
+
+        /* =========================================================
+           TABLET
+        ========================================================= */
+
+        @media (max-width: 800px) {
+          .jn-content { padding: 120px 24px 56px; }
+          .jn-subline { font-size: 16px; }
+          .jn-actions { margin-top: 34px; }
+          .jn-stage { margin-top: 52px; }
+        }
+
+        /* =========================================================
+           MOBILE
+           Dashboard is cropped to its top portion and bleeds off
+           the bottom of the hero.
+        ========================================================= */
+
+        @media (max-width: 640px) {
+          .jn-hero {
+            margin: 0 8px;
+            border-radius: 22px 22px 0 0;
+          }
+
+          .jn-bg-desktop { display: none; }
+          .jn-bg-mobile { display: block; }
+
+          .jn-content { padding: 108px 18px 40px; }
+
+          .jn-title { font-size: clamp(30px, 9vw, 44px); }
+
+          .jn-subline {
+            margin-top: 18px;
+            max-width: 300px;
+            font-size: 15px;
+          }
+
+          .jn-actions {
+            flex-direction: column;
+            width: 100%;
+            margin-top: 30px;
+          }
+
+          .jn-btn { width: min(100%, 320px); }
+
+          .jn-stage {
+            width: calc(100% + 36px);
+            margin: 40px -18px 0;
+          }
+
+          /* Phones show the top part of the dashboard, faded at the bottom. */
+          .jn-clip {
+            max-height: 340px;
+            overflow: hidden;
+            -webkit-mask-image: linear-gradient(180deg, #000 72%, transparent 100%);
+            mask-image: linear-gradient(180deg, #000 72%, transparent 100%);
+          }
+
+          .jn-tilt {
+            --jn-tilt: 8deg;
+            --jn-scale: 0.96;
+          }
+
+          .jn-dash {
+            width: 160%;
+            max-width: none;
+            margin-left: -30%;
+          }
+        }
+
+        /* =========================================================
+           REDUCED MOTION
+        ========================================================= */
 
         @media (prefers-reduced-motion: reduce) {
-          .dh-curve-line, .dh-node-pulse, .dh-float { animation: none !important; }
+          .jn-reveal {
+            opacity: 1 !important;
+            transform: none !important;
+            transition: none !important;
+          }
+
+          .jn-tilt,
+          .jn-glow,
+          .jn-intro {
+            animation: none !important;
+          }
+
+          .jn-tilt { transform: none !important; }
+          .jn-glow { opacity: 1 !important; }
+
         }
+
       `}</style>
 
-      {/* Ambient warm gradient wash + a faint dot grid, in the product's own colors */}
-      <div
-        className="absolute inset-0 opacity-[0.5] pointer-events-none"
-        style={{
-          backgroundImage: 'radial-gradient(rgba(27,31,44,0.06) 1px, transparent 1px)',
-          backgroundSize: '26px 26px',
-          maskImage: 'radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%)',
-        }}
-      />
-      <div className="absolute -top-32 left-[8%] w-[520px] h-[520px] bg-[#E8B24D]/20 blur-[150px] rounded-full pointer-events-none" />
-      <div className="absolute top-10 -right-24 w-[460px] h-[460px] bg-[#35D6A9]/20 blur-[140px] rounded-full pointer-events-none" />
+      {/* Background */}
+      <div className="jn-bg jn-bg-desktop" aria-hidden="true" />
+      <div className="jn-bg jn-bg-mobile" aria-hidden="true" />
 
-      {/* Signature element: the hero's own equity curve, arcing behind the whole
-          section — the same gradient stops used inside the dashboard screenshot,
-          so the marketing copy and the product feel like one continuous line. */}
-      <svg
-        className="absolute inset-x-0 top-0 w-full h-[520px] pointer-events-none opacity-70"
-        viewBox="0 0 1400 520"
-        preserveAspectRatio="none"
-      >
-        <defs>
-          <linearGradient id="dh-hero-line" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#E8B24D" />
-            <stop offset="65%" stopColor="#CFCB6E" />
-            <stop offset="100%" stopColor="#35D6A9" />
-          </linearGradient>
-        </defs>
-        <path
-          d="M0,360 C160,320 260,410 380,380 C520,344 560,260 700,240 C840,220 900,300 1040,270 C1160,244 1240,160 1400,120"
-          fill="none" stroke="url(#dh-hero-line)" strokeWidth="1.5" strokeOpacity="0.35"
-        />
-        <path
-          d="M0,360 C160,320 260,410 380,380 C520,344 560,260 700,240 C840,220 900,300 1040,270 C1160,244 1240,160 1400,120"
-          fill="none" stroke="url(#dh-hero-line)" strokeWidth="1.5" className="dh-curve-line"
-        />
-      </svg>
+      <div className="jn-content">
+        <div className="jn-intro" ref={introRef}>
+          <h1 className="jn-title jn-reveal" style={reveal(0, 22)}>
+            <span className="jn-title-line">{COPY.titleTop}</span>
+            <span className="jn-title-line jn-title-accent">
+              {COPY.titleBottom}
+            </span>
+          </h1>
 
-      <div className="max-w-7xl mx-auto px-6 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-14 items-center">
+          <p className="jn-subline jn-reveal" style={reveal(120)}>
+            {COPY.subline}
+          </p>
 
-          {/* Left: copy */}
-          <div className="lg:col-span-5 space-y-7 text-left">
+          <div className="jn-actions jn-reveal" style={reveal(200)}>
+            <a href="#pricing" className="jn-btn jn-btn-primary">
+              <span>{COPY.primaryCta}</span>
+              <ArrowIcon />
+            </a>
+          </div>
 
-            <div className="inline-flex items-center gap-2.5 bg-[var(--surface)] border border-[var(--line)] px-4 py-1.5 rounded-full shadow-sm">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full rounded-full bg-[#1FA983] dh-node-pulse" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#1FA983]" />
-              </span>
-              <span className="font-mono text-[11px] tracking-wide text-[var(--muted)]">
-                LIVE JOURNAL &middot; 128,406 fills synced this month
-              </span>
-            </div>
-
-            <h1 className="font-display text-4xl sm:text-5xl lg:text-[3.4rem] font-semibold tracking-tight leading-[1.08] text-[#14161F]">
-              Find the edge
-              <br />
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-[#C9942F] to-[#1FA983]">
-                hiding in your trades.
-              </span>
-            </h1>
-
-            <p className="text-base sm:text-lg text-[var(--muted)] leading-relaxed max-w-md">
-              Drift turns every fill into a pattern you can see — win rate,
-              R-multiples, and the setups quietly making or losing you money,
-              surfaced automatically, no spreadsheet required.
+          {COPY.microcopy ? (
+            <p className="jn-micro jn-reveal" style={reveal(260)}>
+              {COPY.microcopy}
             </p>
-
-            <div className="flex flex-wrap items-center gap-4 pt-1">
-              <button className="group inline-flex items-center gap-2 bg-[#14161F] hover:bg-[#262B3A] text-[#FBF8F1] font-semibold text-sm px-7 py-3.5 rounded-xl shadow-lg shadow-black/10 transition-all hover:-translate-y-0.5 active:translate-y-0 cursor-pointer">
-                Start journaling free
-                <ArrowIcon className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
-              </button>
-
-              <button className="inline-flex items-center gap-2 border border-[var(--line)] bg-white hover:border-[#1FA983]/50 text-[#1B1F2C] font-semibold text-sm px-6 py-3.5 rounded-xl transition-colors cursor-pointer">
-                <ReportIcon className="w-4 h-4 text-[#1FA983]" />
-                See a sample report
-              </button>
-            </div>
-
-            <div className="pt-6 border-t border-[var(--line)] space-y-3">
-              <div className="font-mono text-[11px] tracking-wider text-[var(--muted)] uppercase">
-                Syncs straight from your broker
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {tags.map((tag, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center gap-2 bg-white border border-[var(--line)] px-3 py-1.5 rounded-full text-xs font-medium text-[#3A3F4D] hover:border-black/15 transition-colors shadow-sm"
-                  >
-                    <span className={`w-1.5 h-1.5 rounded-full ${tag.dot}`} />
-                    {tag.label}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Right: the product itself — the dashboard screenshot, not a mockup
-              built to represent it. It already carries its own floating cards
-              (pattern insight, sync activity, edge score gauge), so it only
-              needs a soft stage to land on. */}
-          <div className="lg:col-span-7 relative">
-            <div className="absolute -inset-10 bg-gradient-to-br from-[#E8B24D]/15 via-transparent to-[#35D6A9]/15 blur-2xl rounded-[3rem] pointer-events-none" />
-            <div className="dh-float relative">
-              <img
-                src={driftDashboard}
-                alt="Drift trading dashboard showing the equity curve, win rate, R-multiple, and edge score for a trader's month"
-                className="w-full h-auto drop-shadow-[0_40px_80px_rgba(20,22,31,0.25)]"
-              />
-            </div>
-          </div>
+          ) : null}
         </div>
 
-        {/* Bottom metrics strip — the same figures shown on the screenshot above,
-            pulled out as a readout so the claim and the proof sit together. */}
-        <div className="mt-16 pt-8 border-t border-[var(--line)] grid grid-cols-2 md:grid-cols-4">
-          {metrics.map((m, idx) => (
-            <div
-              key={idx}
-              className={`px-4 py-2 ${idx !== 0 ? 'md:border-l border-[var(--line)]' : ''}`}
-            >
-              <div className="flex items-center gap-1.5 font-mono text-2xl sm:text-3xl font-semibold text-[#14161F]">
-                {m.value}
-                {m.trend === 'up' && <span className="text-[#1FA983] text-sm">▲</span>}
-              </div>
-              <div className="font-mono text-[11px] text-[var(--muted)] uppercase tracking-wider mt-1">
-                {m.label}
+        {/* Dashboard preview */}
+        <div className="jn-stage" ref={stageRef}>
+          <div className="jn-glow" ref={glowRef} aria-hidden="true" />
+
+          <div className="jn-reveal" style={reveal(360, 40)}>
+            <div className="jn-clip">
+              <div className="jn-tilt" ref={tiltRef}>
+                <img
+                  src={HeroPNG}
+                  alt="Journin dashboard showing net P&L, win rate, equity curve and recent trades"
+                  className="jn-dash"
+                  decoding="async"
+                  draggable={false}
+                />
               </div>
             </div>
-          ))}
+          </div>
         </div>
       </div>
+
     </section>
   );
 }

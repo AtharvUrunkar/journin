@@ -1,12 +1,155 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-html, body, #root {
+/* =========================================================
+   GLOBAL THEME
+   DRIFT — Clean Trading Intelligence
+========================================================= */
+
+:root {
+  color-scheme: light;
+
+  --drift-blue: #2468D5;
+  --drift-blue-light: #EEF5FF;
+  --drift-teal: #1AA984;
+
+  --background: #FBFCFE;
+  --surface: #FFFFFF;
+
+  --text-primary: #12161F;
+  --text-secondary: #52627C;
+  --text-muted: #738097;
+
+  --border: rgba(21, 33, 58, 0.08);
+}
+
+/* =========================================================
+   HTML
+========================================================= */
+
+html {
+  scroll-behavior: smooth;
+  color-scheme: light;
+}
+
+/* =========================================================
+   BODY / ROOT
+========================================================= */
+
+html,
+body,
+#root {
   margin: 0;
   padding: 0;
+
   width: 100%;
   min-height: 100vh;
-  background-color: #ffffff !important;
-  color: #0f172a;
+
+  background-color: var(--background);
+  color: var(--text-primary);
+
+  font-family: "Roboto", ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  text-rendering: optimizeLegibility;
+
+  overflow-x: hidden;
+}
+
+/* =========================================================
+   GLOBAL BOX SIZING
+========================================================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* =========================================================
+   LINKS
+========================================================= */
+
+a {
+  color: inherit;
+}
+
+/* =========================================================
+   BUTTONS / INPUTS
+========================================================= */
+
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+}
+
+/* =========================================================
+   CUSTOM SCROLLBAR
+========================================================= */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F5F8FC;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #C7D5E8;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9FB6D4;
+}
+
+/* =========================================================
+   SELECTION
+========================================================= */
+
+::selection {
+  background: rgba(36, 104, 213, 0.16);
+  color: #12161F;
+}
+
+/* =========================================================
+   OPTIONAL GLOBAL UTILITIES
+========================================================= */
+
+@layer components {
+  .drift-surface {
+    background: #FFFFFF;
+    border: 1px solid rgba(21, 33, 58, 0.08);
+  }
+
+  .drift-text-primary {
+    color: #12161F;
+  }
+
+  .drift-text-secondary {
+    color: #52627C;
+  }
+
+  .drift-gradient-text {
+    background: linear-gradient(
+      90deg,
+      #2468D5 0%,
+      #2784D1 48%,
+      #1AA984 100%
+    );
+
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
 }

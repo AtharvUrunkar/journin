@@ -1,23 +1,395 @@
-/* Custom Glow Gradients & Animations — recolored to Drift's amber/teal palette */
-.hero-glow-amber {
-  background: radial-gradient(circle, rgba(232, 178, 77, 0.22) 0%, rgba(255, 255, 255, 0) 70%);
+/* Drift Design System: Light Theme + Continuous Gradient Canvas (Blue Theme Trial) */
+
+:root {
+  --drift-bg: #FAF7F2;
+  --drift-surface: #FFFFFF;
+  --drift-card: #FFFFFF;
+  --drift-panel: #F5F1E6;
+  --drift-border: rgba(20, 22, 28, 0.07);
+  --drift-border-subtle: rgba(20, 22, 28, 0.04);
+  --drift-ink: #14161C;
+
+  /* Blue Theme Trial Accent Tokens (Amber originals saved for easy revert)
+   * Original Amber: Light #F0C878, Deep #C99A44, Text #A1741E
+   */
+  --drift-accent-light: #7EB3F0;
+  --drift-accent-deep: #2C5FBD;
+  --drift-accent-text: #1E4A94;
+
+  /* Legacy variable alias mappings */
+  --drift-amber-light: #7EB3F0;
+  --drift-amber-bright: #629DE4;
+  --drift-amber-deep: #2C5FBD;
+  --drift-amber-text: #1E4A94;
+
+  /* Untouched Semantic Palette */
+  --drift-teal: #1FA983;
+  --drift-teal-bright: #35D6A9;
+  --drift-teal-text: #0E795D;
+  --drift-red: #C53030;
+  --drift-muted: #5C6478;
+  --drift-subtle: #7A8294;
 }
 
-.hero-glow-teal {
-  background: radial-gradient(circle, rgba(53, 214, 169, 0.18) 0%, rgba(255, 255, 255, 0) 70%);
+/* ========================================================================= *
+ * Selection & Custom Scrollbar (Blue Theme)
+ * ========================================================================= */
+::selection {
+  background: rgba(126, 179, 240, 0.45);
+  color: #14161C;
 }
 
-.glass-card {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(27, 31, 44, 0.08);
+::-moz-selection {
+  background: rgba(126, 179, 240, 0.45);
+  color: #14161C;
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
+/* WebKit Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
 }
 
-.animate-float {
-  animation: float 5s ease-in-out infinite;
+::-webkit-scrollbar-track {
+  background: #F5F1E6;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2C5FBD;
+  border-radius: 999px;
+  border: 2px solid #F5F1E6;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #1E4A94;
+}
+
+/* Firefox Custom Scrollbar */
+* {
+  scrollbar-color: #2C5FBD #F5F1E6;
+  scrollbar-width: thin;
+}
+
+/* ========================================================================= *
+ * Depth Hierarchy (Point 1)
+ * Tier 1: Hero Right Panel & Closing CTA Band
+ * Tier 2: Standard Cards (Feature, Pricing, Testimonials, Steps)
+ * Tier 3: Nested Chips & Recessed Inline Data Readouts
+ * ========================================================================= */
+
+.dh-tier-1 {
+  border: 1px solid rgba(44, 95, 189, 0.22);
+  box-shadow: 0 24px 60px -12px rgba(20, 22, 28, 0.16), 0 8px 24px -4px rgba(20, 22, 28, 0.08);
+}
+
+.dh-tier-2 {
+  background: #FFFFFF;
+  border: 1px solid rgba(20, 22, 28, 0.07);
+  box-shadow: 0 4px 20px -2px rgba(20, 22, 28, 0.04), 0 12px 32px -4px rgba(20, 22, 28, 0.06);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.dh-tier-2:hover {
+  border-color: rgba(20, 22, 28, 0.16);
+  box-shadow: 0 8px 28px -2px rgba(20, 22, 28, 0.07), 0 16px 40px -4px rgba(20, 22, 28, 0.09);
+}
+
+.dh-tier-3 {
+  background: #FAF7F2;
+  border: 1px solid rgba(20, 22, 28, 0.06);
+  box-shadow: 0 1px 2px rgba(20, 22, 28, 0.03);
+}
+
+/* ========================================================================= *
+ * Cursor-Aware Micro-Glow (Desktop Only - Blue Theme)
+ * ========================================================================= */
+.dh-cursor-glow {
+  position: relative;
+}
+
+@media (pointer: fine) {
+  .dh-cursor-glow::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    z-index: 1;
+    background: radial-gradient(180px circle at var(--mouse-x, -999px) var(--mouse-y, -999px), rgba(126, 179, 240, 0.15), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .dh-cursor-glow:hover::before {
+    opacity: 1;
+  }
+}
+
+/* ========================================================================= *
+ * Signature Hover Animations (Point 9)
+ * ========================================================================= */
+.dh-cta-arrow {
+  transition: transform 200ms ease;
+}
+
+.group:hover .dh-cta-arrow {
+  transform: translateX(4px);
+}
+
+.dh-chip-amber,
+.dh-chip-blue {
+  transition: transform 250ms ease;
+}
+
+.group:hover .dh-chip-amber,
+.group:hover .dh-chip-blue {
+  transform: rotate(-6deg) scale(1.06);
+}
+
+.dh-chip-teal {
+  transition: transform 250ms ease;
+}
+
+.group:hover .dh-chip-teal {
+  transform: rotate(6deg) scale(1.06);
+}
+
+/* ========================================================================= *
+ * Background Grain Overlay (Point 3)
+ * ========================================================================= */
+.dh-grain-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.028;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+}
+
+/* Light Theme Precision Cards */
+.dh-card-light {
+  background: #FFFFFF;
+  border: 1px solid rgba(20, 22, 28, 0.07);
+  box-shadow: 0 4px 20px -2px rgba(20, 22, 28, 0.04), 0 12px 32px -4px rgba(20, 22, 28, 0.06);
+  transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.dh-card-light:hover {
+  border-color: rgba(20, 22, 28, 0.14);
+  box-shadow: 0 6px 24px -2px rgba(20, 22, 28, 0.05), 0 16px 36px -4px rgba(20, 22, 28, 0.08);
+}
+
+.dh-card-amber-light,
+.dh-card-blue-light {
+  background: #FFFFFF;
+  border: 1px solid rgba(44, 95, 189, 0.4);
+  box-shadow: 0 0 35px -5px rgba(126, 179, 240, 0.25), 0 12px 32px -4px rgba(20, 22, 28, 0.05);
+  transition: border-color 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.dh-card-amber-light:hover,
+.dh-card-blue-light:hover {
+  border-color: rgba(44, 95, 189, 0.7);
+  box-shadow: 0 0 45px -4px rgba(126, 179, 240, 0.35), 0 16px 40px -4px rgba(20, 22, 28, 0.08);
+}
+
+/* Hairline gradient divider: Blue to Teal */
+.dh-hairline-x {
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(44, 95, 189, 0.35) 0%,
+    rgba(20, 22, 28, 0.06) 40%,
+    rgba(31, 169, 131, 0.35) 100%
+  );
+}
+
+.dh-hairline-subtle {
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(20, 22, 28, 0.08) 50%,
+    transparent 100%
+  );
+}
+
+/* Circuit trace line animations for light theme */
+@keyframes dh-trace-dash {
+  to {
+    stroke-dashoffset: -100;
+  }
+}
+
+@keyframes dh-pulse-glow {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+@keyframes dh-dot-travel-x {
+  0% {
+    transform: translateX(0%);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+.dh-trace-animated {
+  stroke-dasharray: 6, 6;
+  animation: dh-trace-dash 12s linear infinite;
+}
+
+.dh-pulse-dot {
+  animation: dh-pulse-glow 2.4s ease-in-out infinite;
+}
+
+/* 3D Transform Utilities */
+.dh-perspective {
+  perspective: 1200px;
+}
+
+.dh-preserve-3d {
+  transform-style: preserve-3d;
+}
+
+.dh-tilt-card {
+  transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+@media (hover: hover) and (min-width: 1024px) {
+  .dh-tilt-card:hover {
+    transform: translateY(-6px) rotateX(2deg) rotateY(-2deg);
+  }
+}
+
+/* Scroll-Triggered Entrance Animation System */
+.dh-reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 650ms cubic-bezier(0.16, 1, 0.3, 1), transform 650ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.dh-reveal.dh-in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ========================================================================= *
+ * Closing CTA Animated Moving Gradient Layer
+ * ========================================================================= */
+.cta-glow {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(90px);
+  opacity: 0.18;
+  will-change: transform;
+}
+
+.cta-glow-1 {
+  top: -10%;
+  left: 10%;
+  width: 420px;
+  height: 420px;
+  background: #7EB3F0;
+  animation: cta-drift-1 14s ease-in-out infinite;
+}
+
+.cta-glow-2 {
+  bottom: -15%;
+  right: 5%;
+  width: 480px;
+  height: 480px;
+  background: #3B82F6;
+  animation: cta-drift-2 18s ease-in-out infinite;
+}
+
+.cta-glow-3 {
+  top: 30%;
+  left: 45%;
+  width: 350px;
+  height: 350px;
+  background: #7EB3F0;
+  opacity: 0.12;
+  animation: cta-drift-3 22s ease-in-out infinite;
+}
+
+@keyframes cta-drift-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(40px, 30px) scale(1.1); }
+}
+
+@keyframes cta-drift-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-30px, -40px) scale(1.05); }
+}
+
+@keyframes cta-drift-3 {
+  0%, 100% { transform: translate(-20px, 0) scale(1); }
+  50% { transform: translate(20px, -20px) scale(1.08); }
+}
+
+/* ========================================================================= *
+ * Testimonials Horizontal Auto-Scroll Marquee
+ * ========================================================================= */
+@keyframes testimonials-marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.animate-testimonials-marquee {
+  animation: testimonials-marquee 48s linear infinite;
+  will-change: transform;
+}
+
+/* Reduced Motion Safety */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .dh-reveal,
+  .dh-reveal.dh-in-view {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  .dh-trace-animated,
+  .dh-pulse-dot,
+  .dh-tilt-card,
+  .cta-glow-1,
+  .cta-glow-2,
+  .cta-glow-3,
+  .animate-testimonials-marquee {
+    animation: none !important;
+    transform: none !important;
+  }
 }

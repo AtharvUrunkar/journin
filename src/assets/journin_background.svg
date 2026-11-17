@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1824" height="862" viewBox="0 0 1824 862" fill="none">
+  <defs>
+    <linearGradient id="base" x1="90" y1="40" x2="1710" y2="850" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#EAF3FF"/><stop offset=".48" stop-color="#F9FBFF"/><stop offset="1" stop-color="#DCEEFF"/>
+    </linearGradient>
+    <radialGradient id="leftGlow" cx="0" cy="0" r="1" gradientTransform="matrix(550 390 -390 550 85 260)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#83B8FF" stop-opacity=".72"/><stop offset="1" stop-color="#83B8FF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="rightGlow" cx="0" cy="0" r="1" gradientTransform="matrix(-550 400 -400 -550 1740 160)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#72E8F2" stop-opacity=".7"/><stop offset="1" stop-color="#72E8F2" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="floorGlow" cx="0" cy="0" r="1" gradientTransform="matrix(0 380 -1000 0 920 820)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#8DD9FF" stop-opacity=".58"/><stop offset="1" stop-color="#8DD9FF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="leftCurve" x1="40" y1="20" x2="490" y2="400" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fff" stop-opacity=".92"/><stop offset=".48" stop-color="#fff" stop-opacity=".45"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="rightCurve" x1="1330" y1="0" x2="1770" y2="430" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fff" stop-opacity=".2"/><stop offset=".55" stop-color="#fff" stop-opacity=".78"/><stop offset="1" stop-color="#fff" stop-opacity=".18"/>
+    </linearGradient>
+    <linearGradient id="gridFade" x1="912" y1="490" x2="912" y2="862" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fff" stop-opacity="0"/><stop offset=".2" stop-color="#fff" stop-opacity=".5"/><stop offset="1" stop-color="#fff" stop-opacity=".72"/>
+    </linearGradient>
+    <pattern id="dots" width="20" height="20" patternUnits="userSpaceOnUse">
+      <circle cx="3" cy="3" r="2.7" fill="#6FA5F8" fill-opacity=".52"/>
+    </pattern>
+    <mask id="leftDots"><rect width="330" height="280" fill="url(#dots)"/><rect width="330" height="280" fill="url(#leftMask)"/></mask>
+    <radialGradient id="leftMask"><stop stop-color="white"/><stop offset="1" stop-color="black"/></radialGradient>
+    <mask id="rightDots"><rect x="1480" y="450" width="344" height="360" fill="url(#dots)"/><rect x="1480" y="450" width="344" height="360" fill="url(#rightMask)"/></mask>
+    <radialGradient id="rightMask"><stop stop-color="white"/><stop offset="1" stop-color="black"/></radialGradient>
+    <filter id="blur40" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="35"/></filter>
+  </defs>
+
+  <!-- Soft luminous base -->
+  <rect width="1824" height="862" fill="url(#base)"/>
+  <rect width="1824" height="862" fill="url(#leftGlow)"/>
+  <rect width="1824" height="862" fill="url(#rightGlow)"/>
+  <rect width="1824" height="862" fill="url(#floorGlow)"/>
+
+  <!-- Soft ambient light pools -->
+  <ellipse cx="910" cy="560" rx="720" ry="250" fill="#B8E7FF" fill-opacity=".24" filter="url(#blur40)"/>
+  <ellipse cx="1690" cy="120" rx="300" ry="220" fill="#7CEAF0" fill-opacity=".16" filter="url(#blur40)"/>
+
+  <!-- Translucent flowing glass forms -->
+  <path d="M-80 -80H690C566 74 491 184 391 273C292 361 173 402 -80 412V-80Z" fill="#fff" fill-opacity=".23"/>
+  <path d="M-55 -28H630C531 95 459 195 365 275C270 355 154 391 -55 408" stroke="url(#leftCurve)" stroke-width="2.5"/>
+  <path d="M1305 -100H1900V190C1795 292 1702 363 1604 394C1500 426 1401 398 1350 338C1297 275 1302 185 1305 -100Z" fill="#fff" fill-opacity=".14"/>
+  <path d="M1320 -50C1302 117 1300 240 1364 316C1420 384 1514 421 1617 391C1700 367 1784 303 1870 210" stroke="url(#rightCurve)" stroke-width="2.6"/>
+
+  <!-- Fine dotted corner textures -->
+  <rect width="330" height="280" fill="url(#dots)" mask="url(#leftDots)" opacity=".9"/>
+  <rect x="1480" y="450" width="344" height="360" fill="url(#dots)" mask="url(#rightDots)" opacity=".8"/>
+
+  <!-- Tiny light particles -->
+  <circle cx="170" cy="482" r="3" fill="white"/>
+  <circle cx="1510" cy="257" r="3" fill="white"/>
+  <circle cx="1629" cy="360" r="2.8" fill="white"/>
+
+  <!-- Perspective floor grid -->
+  <g stroke="#fff" stroke-opacity=".56" stroke-width="1.5">
+    <path d="M0 510H1824M0 535H1824M0 562H1824M0 592H1824M0 626H1824M0 665H1824M0 711H1824M0 766H1824M0 830H1824"/>
+    <path d="M912 488L-180 862M912 488L40 862M912 488L300 862M912 488L540 862M912 488L760 862M912 488L912 862M912 488L1064 862M912 488L1284 862M912 488L1524 862M912 488L1784 862M912 488L2004 862"/>
+  </g>
+  <rect y="480" width="1824" height="382" fill="url(#gridFade)"/>
+  <path d="M0 654C185 560 356 523 565 510" stroke="#DDFBFF" stroke-opacity=".8" stroke-width="2"/>
+  <path d="M0 654C185 560 356 523 565 510" stroke="#fff" stroke-opacity=".8" stroke-width="1"/>
+</svg>
