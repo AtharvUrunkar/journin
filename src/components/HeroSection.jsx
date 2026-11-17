@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import HeroPNG from '../assets/herosection.svg';
+import HeroPNG from '../assets/heroSection.svg';
 import HeroBackgroundDesktop from '../assets/blue_bg.png';
 import HeroBackgroundMobile from '../assets/mobile-background.png';
 
